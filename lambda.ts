@@ -1,24 +1,42 @@
 import { configure as serverlessExpress } from '@vendia/serverless-express';
-import { bootstrap } from './src/main';
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { AppModule } from './src//app.module';
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
 
 let cachedServer: any;
 
-export const handler = async (event: any, context: any) => {
-    if (!cachedServer) {
-        // 初始化 NestJS 应用
-        const nestApp = await bootstrap();
+async function createNestApp() {
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log'],
+  });
 
-        // 获取底层的 Express 实例
-        const expressApp = nestApp.getHttpAdapter().getInstance();
+  // 启用全局验证管道
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    transform: true,
+    forbidNonWhitelisted: true,
+  }));
 
-        // 配置 serverless-express
-        cachedServer = serverlessExpress({
-            app: expressApp,
-            logSettings: {
-                level: process.env.NODE_ENV === 'production' ? 'warn' : 'debug'
-            }
-        });
-    }
+  // 启用 CORS
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
 
-    return cachedServer(event, context);
+  await app.init();
+  
+  const expressApp = app.getHttpAdapter().getInstance();
+  return serverlessExpress({ app: expressApp });
+}
+
+export const handler = async (
+  event: APIGatewayProxyEvent,
+  context: Context
+): Promise<APIGatewayProxyResult> => {
+  if (!cachedServer) {
+    cachedServer = await createNestApp();
+  }
+
+  return cachedServer(event, context);
 };

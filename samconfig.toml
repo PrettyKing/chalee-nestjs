@@ -1,0 +1,22 @@
+# samconfig.toml - SAM 配置文件
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "nestjs-api-stack"
+s3_bucket = "your-sam-deployment-bucket"  # 需要先创建这个 S3 bucket
+s3_prefix = "nestjs-api"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = [
+  "DatabaseUrl=postgresql://username:password@hostname:5432/database",
+  "GitHubToken=your_github_token_here"
+]
+confirm_changeset = true
+resolve_s3 = true
+
+[default.build.parameters]
+cached = true
+parallel = true
+
+[default.local.start_api.parameters]
+port = 3000
