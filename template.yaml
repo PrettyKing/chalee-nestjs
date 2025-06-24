@@ -58,11 +58,11 @@ Resources:
         - VPCAccessPolicy: {}
       VpcConfig:
         SecurityGroupIds:
-          - sg-00f3918b436600a44 # Default security group
+          - sg-0fa3258873491f1b8 # Default security group
         SubnetIds:
-          - subnet-094a08e21276709af
-          - subnet-07317a46e9534e665
-          - subnet-0a09a30458eb9250d
+          - subnet-08bc064a389aa7847
+          - subnet-094b048608d8b9ea2
+          - subnet-00bbb665acae7a71d
       Events:
         ApiEvent:
           Type: Api
