@@ -35,6 +35,9 @@ importers:
       aws-lambda:
         specifier: ^1.0.7
         version: 1.0.7
+      aws-serverless-express:
+        specifier: ^3.4.0
+        version: 3.4.0
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -327,6 +330,10 @@ packages:
 
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
+
+  '@codegenie/serverless-express@3.4.1':
+    resolution: {integrity: sha512-PQ3v/wDflxx168B4TwuxbbKjfmvLkyRBdvHRFS8s48hDS0Wnukm+5Dp+HiLvqwXOU7PP2+FyrK47WX4WL15Rrw==}
+    engines: {node: '>=6'}
 
   '@codegenie/serverless-express@4.16.0':
     resolution: {integrity: sha512-TlvAHQysphN3OW6Ziz6AD2DnN9IIy/KkKNImZwMJpwGHHqLATi/9hMg8H8VBRg2L15pGt8ad3R6j6mfvHVWrCg==}
@@ -1189,6 +1196,10 @@ packages:
     resolution: {integrity: sha512-xoh5rJ+tgsRKoXnkBPFRLZ7rjKM0AfVbC68UZ/ECXoDbfggb9RbEySN359acY1vS3qZ0jVTVWzbtfapwm5ztxw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
+  '@vendia/serverless-express@3.4.1':
+    resolution: {integrity: sha512-4dJJvr9vQlq9iUClpfm5iFL+neoSctUI6Zkh9F4wjk/tpcM7QVD6niJi4ptiIzyzJCWoN97ACQCXyE0O8MznLQ==}
+    engines: {node: '>=6'}
+
   '@vendia/serverless-express@4.12.6':
     resolution: {integrity: sha512-ePsIPk3VQwgm5nh/JGBtTKQs5ZOF7REjHxC+PKk/CHvhlKQkJuUU365uPOlxuLJhC+BAefDznDRReWxpnKjmYg==}
     engines: {node: '>=12'}
@@ -1409,6 +1420,10 @@ packages:
     resolution: {integrity: sha512-x511uiJ/57FIsbgUe5csJ13k3uzu25uWQE+XqfBis/sB0SFoiElJWXRkgEAUh0U6n40eT3ay5Ue4oPkRMu1LYw==}
     engines: {node: '>= 10.0.0'}
 
+  aws-serverless-express@3.4.0:
+    resolution: {integrity: sha512-YG9ZjAOI9OpwqDDWzkRc3kKJYJuR7gTMjLa3kAWopO17myoprxskCUyCEee+RKe34tcR4UNrVtgAwW5yDe74bw==}
+    engines: {node: '>=6'}
+
   axios@1.10.0:
     resolution: {integrity: sha512-/1xYAC4MP/HEG+3duIhFr4ZQXR4sQXOIe+o6sdqzeykGLx6Upp/1p8MHqhINOvGeP7xyNHe7tsiJByc4SSVUxw==}
 
@@ -1456,6 +1471,9 @@ packages:
   bin-version@6.0.0:
     resolution: {integrity: sha512-nk5wEsP4RiKjG+vF+uG8lFsEn4d7Y6FVDamzzftSunXOoOcOOkzcWdKVlGgFFwlUQCj63SgnUkLLGF8v7lufhw==}
     engines: {node: '>=12'}
+
+  binary-case@1.1.4:
+    resolution: {integrity: sha512-9Kq8m6NZTAgy05Ryuh7U3Qc4/ujLQU1AZ5vMw4cr3igTdi5itZC6kCNrRr2X8NzPiDn2oUIFTfa71DKMnue/Zg==}
 
   bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
@@ -3862,6 +3880,11 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
+  '@codegenie/serverless-express@3.4.1':
+    dependencies:
+      binary-case: 1.1.4
+      type-is: 1.6.18
+
   '@codegenie/serverless-express@4.16.0': {}
 
   '@colors/colors@1.5.0':
@@ -4830,6 +4853,12 @@ snapshots:
       '@typescript-eslint/types': 8.34.1
       eslint-visitor-keys: 4.2.1
 
+  '@vendia/serverless-express@3.4.1':
+    dependencies:
+      '@codegenie/serverless-express': 3.4.1
+      binary-case: 1.1.4
+      type-is: 1.6.18
+
   '@vendia/serverless-express@4.12.6':
     dependencies:
       '@codegenie/serverless-express': 4.16.0
@@ -5097,6 +5126,12 @@ snapshots:
       uuid: 8.0.0
       xml2js: 0.6.2
 
+  aws-serverless-express@3.4.0:
+    dependencies:
+      '@vendia/serverless-express': 3.4.1
+      binary-case: 1.1.4
+      type-is: 1.6.18
+
   axios@1.10.0:
     dependencies:
       follow-redirects: 1.15.9
@@ -5179,6 +5214,8 @@ snapshots:
     dependencies:
       execa: 5.1.1
       find-versions: 5.1.0
+
+  binary-case@1.1.4: {}
 
   bl@4.1.0:
     dependencies:
