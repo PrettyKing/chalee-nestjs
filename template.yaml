@@ -54,7 +54,7 @@ Resources:
         - !Ref NodeModulesLayer
       Policies:
         - S3CrudPolicy:
-            BucketName: mina-community-assets
+            BucketName: chalee-nestjs
         - VPCAccessPolicy: {}
       VpcConfig:
         SecurityGroupIds:

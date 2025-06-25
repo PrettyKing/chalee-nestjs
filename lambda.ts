@@ -13,11 +13,12 @@ async function bootstrap(): Promise<Server> {
     const expressApp = express();
     const nestApp = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
     
-    // Enable CORS if needed
     nestApp.enableCors({
-      origin: true,
-      credentials: true,
-    });
+    origin: true, // 或指定具体域名 ['https://yourdomain.com']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+  });
     
     await nestApp.init();
     cachedServer = awsServerlessExpress.createServer(expressApp);

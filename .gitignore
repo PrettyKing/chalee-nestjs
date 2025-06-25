@@ -56,3 +56,7 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 /generated/prisma
+samconfig.toml
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
