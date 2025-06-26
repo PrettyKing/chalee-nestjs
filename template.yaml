@@ -43,19 +43,15 @@ Resources:
 
   NestjsFunction:
     Type: AWS::Serverless::Function
-    Metadata:
-      SkipBuild: true
+    # Metadata:
+    #   SkipBuild: true
     Properties:
       Handler: lambda.handler
       CodeUri: ./dist
-      MemorySize: 3008
+      MemorySize: 1024
       Timeout: 30
       Layers:
         - !Ref NodeModulesLayer
-      Policies:
-        - S3CrudPolicy:
-            BucketName: chalee-nestjs
-        - VPCAccessPolicy: {}
       VpcConfig:
         SecurityGroupIds:
           - sg-0fa3258873491f1b8 # Default security group
@@ -64,7 +60,15 @@ Resources:
           - subnet-094b048608d8b9ea2
           - subnet-00bbb665acae7a71d
       Events:
-        ApiEvent:
+        ApiEventRoot:
+          Type: Api
+          Properties:
+            Path: /
+            Method: ANY
+            RestApiId: !Ref Api
+            Auth:
+              Authorizer: NONE
+        ApiEventProxy:
           Type: Api
           Properties:
             Path: /{proxy+}
