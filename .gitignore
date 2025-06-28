@@ -138,3 +138,6 @@ coverage/
 
 # Local development
 *.local 
+
+
+package-lock.json

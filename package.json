@@ -1,6 +1,6 @@
 {
   "name": "chalee-nestjs",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "description": "",
   "author": "",
   "private": true,
@@ -16,7 +16,10 @@
     "sam:build": "npm run build:lambda && sam build",
     "sam:deploy": "sam deploy --guided",
     "sam:deploy:fast": "sam deploy",
-    "sam:local": "sam local start-api --port 3001"
+    "sam:local": "sam local start-api --port 3001",
+    "postinstall": "prisma generate",
+    "deploy": "npm run build:lambda && serverless deploy",
+    "build:lambda": "prisma generate && nest build"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.0",

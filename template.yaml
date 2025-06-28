@@ -19,17 +19,47 @@ Globals:
       AllowHeaders: "'Content-Type,Authorization'"
       AllowOrigin: "'*'"
       MaxAge: 600
+Parameters:
+  VpcId:
+    Type: String
+    Default: vpc-00fddec9634ccb004
+    Description: VPC ID where RDS is located
 
 Resources:
+  # Node modules Layer
   NodeModulesLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
-      LayerName: nest-dependencies
-      Description: Node modules for Nest.js application
+      LayerName: nestjs-dependencies
+      Description: Node modules for NestJS application
       ContentUri: layer/
       CompatibleRuntimes:
         - nodejs20.x
       RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: nodejs20.x
+  # Lambda 安全组
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Lambda function
+      VpcId: !Ref VpcId
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0
+          Description: Allow outbound PostgreSQL traffic
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: Allow HTTPS outbound
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+          Description: Allow HTTP outbound
 
   Api:
     Type: AWS::Serverless::Api
@@ -47,41 +77,45 @@ Resources:
     #   SkipBuild: true
     Properties:
       Handler: lambda.handler
-      CodeUri: ./dist
-      MemorySize: 1024
+      CodeUri: dist/
+      MemorySize: 3008
       Timeout: 30
       Layers:
         - !Ref NodeModulesLayer
+      Policies:
+        - VPCAccessPolicy: {}
+        - SSMParameterReadPolicy:
+            ParameterName: /nest-sam/*
       VpcConfig:
         SecurityGroupIds:
-          - sg-0fa3258873491f1b8 # Default security group
+          - !Ref LambdaSecurityGroup
         SubnetIds:
           - subnet-08bc064a389aa7847
           - subnet-094b048608d8b9ea2
           - subnet-00bbb665acae7a71d
       Events:
-        ApiEventRoot:
+        RootEvent:
           Type: Api
           Properties:
             Path: /
             Method: ANY
             RestApiId: !Ref Api
-            Auth:
-              Authorizer: NONE
-        ApiEventProxy:
+        ProxyEvent:
           Type: Api
           Properties:
             Path: /{proxy+}
             Method: ANY
             RestApiId: !Ref Api
-            Auth:
-              Authorizer: NONE
-      AutoPublishAlias: live
-
+      Environment:
+        Variables:
+          NODE_ENV: production
 Outputs:
   ApiEndpoint:
     Description: API Gateway endpoint URL
-    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/dev'
+    Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/dev"
   FunctionArn:
     Description: Lambda Function ARN
     Value: !GetAtt NestjsFunction.Arn
+  LambdaSecurityGroupId:
+    Description: Lambda Security Group ID
+    Value: !Ref LambdaSecurityGroup

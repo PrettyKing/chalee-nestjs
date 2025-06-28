@@ -1,135 +1,124 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: NestJS Blog API with Lambda Layer
 Globals:
   Function:
     Timeout: 30
-    Runtime: nodejs18.x
+    MemorySize: 1024
+    Runtime: nodejs20.x
+    Architectures:
+    - arm64
     Environment:
       Variables:
-        NODE_ENV: production
+        NODE_OPTIONS: --enable-source-maps
+    EphemeralStorage:
+      Size: 512
+  Api:
+    OpenApiVersion: '2.0'
+    Cors:
+      AllowMethods: '''*'''
+      AllowHeaders: '''Content-Type,Authorization'''
+      AllowOrigin: '''*'''
+      MaxAge: 600
 Parameters:
-  DatabaseUrl:
+  VpcId:
     Type: String
-    Description: Database connection URL
-    NoEcho: true
-  GithubUsername:
-    Type: String
-    Description: GitHub username
-    Default: PrettyKing
-  ExistingVpcId:
-    Type: String
-    Description: Existing VPC ID where Aurora is located
     Default: vpc-00fddec9634ccb004
-  ExistingSubnet1Id:
-    Type: String
-    Description: Existing Subnet 1 ID for Lambda
-    Default: subnet-08bc064a389aa7847
-  ExistingSubnet2Id:
-    Type: String
-    Description: Existing Subnet 2 ID for Lambda
-    Default: subnet-094b048608d8b9ea2
+    Description: VPC ID where RDS is located
 Resources:
+  NodeModulesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: nestjs-dependencies
+      Description: Node modules for NestJS application
+      ContentUri: NodeModulesLayer
+      CompatibleRuntimes:
+      - nodejs20.x
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: nodejs20.x
+      SamResourceId: NodeModulesLayer
   LambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: BlogApiLambdaSG-Layer
-      GroupDescription: Security group for Blog API Lambda function with Layer
+      GroupDescription: Security group for Lambda function
       VpcId:
-        Ref: ExistingVpcId
+        Ref: VpcId
       SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: 5432
+        ToPort: 5432
+        CidrIp: '0.0.0.0/0'
+        Description: Allow outbound PostgreSQL traffic
       - IpProtocol: tcp
         FromPort: 443
         ToPort: 443
         CidrIp: '0.0.0.0/0'
-        Description: HTTPS outbound for GitHub API
+        Description: Allow HTTPS outbound
       - IpProtocol: tcp
-        FromPort: 5432
-        ToPort: 5432
-        CidrIp: 172.31.0.0/16
-        Description: PostgreSQL to Aurora
-      Tags:
-      - Key: Name
-        Value: BlogApiLambdaSG-Layer
-  NodeModulesLayer:
-    Type: AWS::Serverless::LayerVersion
+        FromPort: 80
+        ToPort: 80
+        CidrIp: '0.0.0.0/0'
+        Description: Allow HTTP outbound
+  Api:
+    Type: AWS::Serverless::Api
     Properties:
-      LayerName: nestjs-blog-dependencies
-      Description: NestJS Blog API dependencies
-      ContentUri: NodeModulesLayer
-      CompatibleRuntimes:
-      - nodejs18.x
-      RetentionPolicy: Retain
-    Metadata:
-      BuildMethod: nodejs18.x
-      SamResourceId: NodeModulesLayer
-  BlogApiFunction:
+      StageName: dev
+      BinaryMediaTypes:
+      - image/*
+      - multipart/form-data
+      Auth:
+        DefaultAuthorizer: NONE
+  NestjsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: BlogApiFunction
       Handler: lambda.handler
-      Runtime: nodejs18.x
+      CodeUri: NestjsFunction
+      MemorySize: 3008
       Timeout: 30
-      MemorySize: 512
       Layers:
       - Ref: NodeModulesLayer
+      Policies:
+      - VPCAccessPolicy: {}
+      - SSMParameterReadPolicy:
+          ParameterName: /nest-sam/*
       VpcConfig:
         SecurityGroupIds:
         - Ref: LambdaSecurityGroup
         SubnetIds:
-        - Ref: ExistingSubnet1Id
-        - Ref: ExistingSubnet2Id
-      Environment:
-        Variables:
-          DATABASE_URL:
-            Ref: DatabaseUrl
-          DATABASE_WRITE_URL:
-            Ref: DatabaseUrl
-          DATABASE_READ_URL:
-            Ref: DatabaseUrl
-          GITHUB_USERNAME:
-            Ref: GithubUsername
-          GITHUB_TOKEN: ''
+        - subnet-08bc064a389aa7847
+        - subnet-094b048608d8b9ea2
+        - subnet-00bbb665acae7a71d
       Events:
-        BlogApi:
-          Type: Api
-          Properties:
-            Path: /{proxy+}
-            Method: ANY
-        BlogApiRoot:
+        RootEvent:
           Type: Api
           Properties:
             Path: /
             Method: ANY
+            RestApiId:
+              Ref: Api
+        ProxyEvent:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+            RestApiId:
+              Ref: Api
+      Environment:
+        Variables:
+          NODE_ENV: production
     Metadata:
-      SamResourceId: BlogApiFunction
+      SamResourceId: NestjsFunction
 Outputs:
-  BlogApiUrl:
-    Description: API Gateway endpoint URL for Blog API
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
     Value:
-      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
-  BlogApiFunction:
-    Description: Blog API Lambda Function ARN
+      Fn::Sub: https://${Api}.execute-api.${AWS::Region}.amazonaws.com/dev
+  FunctionArn:
+    Description: Lambda Function ARN
     Value:
       Fn::GetAtt:
-      - BlogApiFunction
+      - NestjsFunction
       - Arn
-  NodeModulesLayer:
-    Description: Lambda Layer ARN
-    Value:
-      Ref: NodeModulesLayer
-  ExistingVpcId:
-    Description: Existing VPC ID used
-    Value:
-      Ref: ExistingVpcId
-  ExistingSubnet1Id:
-    Description: Existing Subnet 1 ID used
-    Value:
-      Ref: ExistingSubnet1Id
-  ExistingSubnet2Id:
-    Description: Existing Subnet 2 ID used
-    Value:
-      Ref: ExistingSubnet2Id
   LambdaSecurityGroupId:
     Description: Lambda Security Group ID
     Value:
